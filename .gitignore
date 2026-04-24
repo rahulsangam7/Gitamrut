@@ -1,0 +1,52 @@
+# ===== Python =====
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+
+# ===== Node / Next.js (gita-app) =====
+gita-app/node_modules/
+gita-app/.next/
+gita-app/out/
+gita-app/dist/
+gita-app/.env*
+!gita-app/.env.example
+
+# ===== Generated audio (regenerable with generate_reel.py / mix_reel.py) =====
+reel_audio/
+reel_audio_mixed/
+
+# ===== Downloaded raw music (regenerable via make_mood_beds.py) =====
+background_music/raw/
+# Generated mood beds — also regenerable, and ~40MB:
+background_music/*.wav
+# And the original tanpura+tabla download (17 MB):
+background_music/*.mp3
+
+# ===== Local Claude Code dev config (not portable across machines) =====
+.claude/
+
+# ===== Generated images =====
+# Smoke-test output from picsum; regenerable with Nano Banana etc.
+gita_images/
+
+# ===== Secrets — belt & braces =====
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+api_key.txt
+
+# ===== macOS / editor cruft =====
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== Logs / tasks =====
+*.log
+generate_images.failures.log
+gita-app/tsconfig.tsbuildinfo
