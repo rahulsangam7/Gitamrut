@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#0a0a0a">
+<title>Bhagavad Gita · Chapter 1 Reels</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  :root {
+    --bg: #0a0707;
+    --bg-grad: radial-gradient(ellipse at top, #1a0e0e 0%, #0a0707 60%, #050303 100%);
+    --gold: #d4a55a;
+    --gold-bright: #f4c97a;
+    --saffron: #ff8c42;
+    --crimson: #c93030;
+    --text: #f8f5ed;
+    --text-muted: rgba(248, 245, 237, 0.65);
+    --overlay-dark: rgba(0, 0, 0, 0.85);
+  }
+
+  html, body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    height: 100vh;
+    width: 100vw;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Snap container */
+  .reels {
+    height: 100vh;
+    width: 100vw;
+    overflow-y: scroll;
+    scroll-snap-type: y mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .reels::-webkit-scrollbar { display: none; }
+
+  /* Individual reel */
+  .reel {
+    height: 100vh;
+    width: 100vw;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    position: relative;
+    overflow: hidden;
+    background: var(--bg-grad);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Image */
+  .reel-image-wrap {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .reel-image {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    user-select: none;
+    -webkit-user-drag: none;
+    box-shadow: 0 0 80px rgba(212, 165, 90, 0.15);
+  }
+
+  /* Background blurred image (for ambient color) */
+  .reel-bg {
+    position: absolute;
+    inset: -20px;
+    background-size: cover;
+    background-position: center;
+    filter: blur(40px) brightness(0.5) saturate(1.2);
+    opacity: 0.5;
+    z-index: 0;
+  }
+
+  /* Top bar */
+  .top-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 1.5rem 1.25rem 4rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    z-index: 10;
+    background: linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 60%, transparent 100%);
+    pointer-events: none;
+  }
+
+  .chapter-title {
+    font-size: 0.72rem;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 600;
+    line-height: 1.4;
+    max-width: 70%;
+  }
+
+  .chapter-title small {
+    display: block;
+    font-size: 0.62rem;
+    color: var(--text-muted);
+    letter-spacing: 0.18em;
+    margin-top: 0.25rem;
+    font-weight: 500;
+  }
+
+  .verse-badge {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--gold-bright);
+    background: rgba(212, 165, 90, 0.15);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    padding: 0.35rem 0.8rem;
+    border-radius: 999px;
+    border: 1px solid rgba(212, 165, 90, 0.45);
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+  }
+
+  /* Bottom verse text overlay */
+  .verse-text-wrap {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 5rem 1.5rem 2rem;
+    background: linear-gradient(to top, rgba(0,0,0,0.95) 25%, rgba(0,0,0,0.75) 60%, transparent 100%);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .verse-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.68rem;
+    color: var(--gold);
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 0.85rem;
+    font-weight: 600;
+  }
+
+  .verse-label::before,
+  .verse-label::after {
+    content: '';
+    width: 18px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+  }
+
+  .verse-text {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: var(--text);
+    font-weight: 400;
+    max-width: 640px;
+    margin: 0 auto;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.9);
+    text-align: center;
+    font-family: 'Georgia', 'Times New Roman', serif;
+    letter-spacing: 0.005em;
+  }
+
+  /* Progress rail (right side) */
+  .progress-rail {
+    position: fixed;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    z-index: 20;
+    pointer-events: none;
+    max-height: 80vh;
+    overflow: hidden;
+  }
+
+  .progress-dot {
+    width: 2px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.2);
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .progress-dot.active {
+    background: var(--gold-bright);
+    height: 14px;
+    box-shadow: 0 0 8px rgba(212, 165, 90, 0.6);
+  }
+  .progress-dot.near {
+    background: rgba(212, 165, 90, 0.5);
+  }
+
+  /* Side actions (decorative) */
+  .side-actions {
+    position: absolute;
+    right: 0.85rem;
+    bottom: 7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    z-index: 8;
+  }
+
+  .side-action {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--text);
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s;
+  }
+  .side-action:active { transform: scale(0.92); }
+
+  .side-action-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s, border 0.2s;
+  }
+  .side-action:hover .side-action-icon {
+    background: rgba(212, 165, 90, 0.25);
+    border-color: rgba(212, 165, 90, 0.6);
+  }
+  .side-action.active .side-action-icon {
+    background: rgba(201, 48, 48, 0.3);
+    border-color: var(--crimson);
+  }
+  .side-action.active svg path {
+    fill: var(--crimson);
+    stroke: var(--crimson);
+  }
+
+  .side-action svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: var(--text);
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .side-action-label {
+    font-size: 0.62rem;
+    color: var(--text);
+    text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+  }
+
+  /* Scroll hint (only on first reel) */
+  .scroll-hint {
+    position: absolute;
+    bottom: 14rem;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    z-index: 7;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    animation: hintPulse 2.4s ease-in-out infinite;
+  }
+
+  .reel:not(:first-child) .scroll-hint { display: none; }
+
+  .scroll-hint svg {
+    width: 16px;
+    height: 16px;
+    stroke: var(--gold);
+    fill: none;
+    stroke-width: 2;
+  }
+
+  @keyframes hintPulse {
+    0%, 100% { transform: translate(-50%, 0); opacity: 0.55; }
+    50% { transform: translate(-50%, 6px); opacity: 0.95; }
+  }
+
+  /* Loader */
+  .loader {
+    position: fixed;
+    inset: 0;
+    background: var(--bg);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    transition: opacity 0.5s;
+    gap: 1rem;
+  }
+  .loader.hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .loader-om {
+    font-size: 3rem;
+    color: var(--gold);
+    animation: omPulse 2s ease-in-out infinite;
+  }
+  @keyframes omPulse {
+    0%, 100% { transform: scale(1); opacity: 0.8; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+  .loader-text {
+    color: var(--gold);
+    font-size: 0.78rem;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  /* Desktop layout */
+  @media (min-width: 768px) {
+    .reel-image-wrap {
+      max-width: 540px;
+      margin: 0 auto;
+    }
+    .verse-text { font-size: 1.15rem; }
+    .verse-text-wrap { padding: 6rem 2rem 2.5rem; }
+    .top-bar { padding: 2rem 2rem 4rem; }
+    .chapter-title { font-size: 0.78rem; }
+  }
+
+  @media (min-width: 1024px) {
+    .reels {
+      max-width: 480px;
+      margin: 0 auto;
+      box-shadow: 0 0 60px rgba(0,0,0,0.6);
+    }
+    body {
+      background: linear-gradient(135deg, #1a0e0e 0%, #050303 100%);
+    }
+    .reel { background: var(--bg-grad); }
+  }
+
+  /* Image fade-in */
+  .reel-image {
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .reel-image.loaded {
+    opacity: 1;
+  }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader">
+  <div class="loader-om">ॐ</div>
+  <div class="loader-text">Bhagavad Gita · Chapter 1</div>
+</div>
+
+<div class="progress-rail" id="progressRail"></div>
+
+<div class="reels" id="reels"></div>
+
+<script>
+const verses = [
+  { num: '1.1',  text: 'Dhritarashtra said: Sanjaya, my sons and the sons of Pandu have gathered at Kurukshetra, the field of dharma, ready for war. What did they do?' },
+  { num: '1.2',  text: 'Sanjaya said: Seeing the Pandava army arranged for battle, King Duryodhana went to his teacher Drona and spoke these words.' },
+  { num: '1.3',  text: 'Duryodhana said: Teacher, look at this mighty army of the sons of Pandu, arranged by your wise student, the son of Drupada.' },
+  { num: '1.4',  text: 'Here are heroic archers, equal in battle to Bhima and Arjuna: Yuyudhana, Virata, and Drupada, all great warriors.' },
+  { num: '1.5',  text: 'There are also Dhrishtaketu, Chekitana, the brave king of Kashi, Purujit, Kuntibhoja, and Shaibya, all excellent men.' },
+  { num: '1.6',  text: 'There are the strong Yudhamanyu, the brave Uttamauja, Abhimanyu the son of Subhadra, and the sons of Draupadi, all great warriors.' },
+  { num: '1.7',  text: 'Now, best of teachers, hear also about the important leaders on our side. I will name the commanders of my army for you.' },
+  { num: '1.8',  text: 'There are you yourself, Bhishma, Karna, victorious Kripa, Ashvatthama, Vikarna, and Bhurishrava, the son of Somadatta.' },
+  { num: '1.9',  text: 'Many other heroes are also ready to give their lives for me. They are armed with many weapons and skilled in battle.' },
+  { num: '1.10', text: 'Our army, protected by Bhishma, is called aparyaptam; their army, protected by Bhima, is called paryaptam. These words can be read as insufficient/sufficient or vast/limited, so the verse is kept neutral.' },
+  { num: '1.11', text: 'So all of you, standing in your proper places in every division of the army, must especially protect Bhishma.' },
+  { num: '1.12', text: 'Then Bhishma, the great elder of the Kauravas, roared like a lion and blew his conch to cheer Duryodhana.' },
+  { num: '1.13', text: 'At once conches, drums, kettledrums, trumpets, and horns sounded together. The noise was tremendous.' },
+  { num: '1.14', text: 'Then Krishna and Arjuna, seated in a grand chariot drawn by white horses, blew their divine conches.' },
+  { num: '1.15', text: 'Krishna blew Panchajanya, Arjuna blew Devadatta, and mighty Bhima blew the great conch Paundra.' },
+  { num: '1.16', text: 'King Yudhishthira, son of Kunti, blew Anantavijaya; Nakula and Sahadeva blew Sughosha and Manipushpaka.' },
+  { num: '1.17', text: 'The king of Kashi, the great archer Shikhandi, Dhrishtadyumna, Virata, and undefeated Satyaki also blew their conches.' },
+  { num: '1.18', text: 'Drupada, the sons of Draupadi, and mighty Abhimanyu, son of Subhadra, each blew their own conch.' },
+  { num: '1.19', text: 'That huge sound shook the hearts of Dhritarashtra’s sons and echoed through heaven and earth.' },
+  { num: '1.20', text: 'Then Arjuna, whose flag bore Hanuman, saw Dhritarashtra’s sons ready for battle. As the fighting was about to begin, he lifted his bow and spoke to Krishna.' },
+  { num: '1.21', text: 'Arjuna said: O Krishna, please place my chariot between the two armies.' },
+  { num: '1.22', text: 'Let me look at the warriors standing here, eager to fight, and see whom I must face in this battle.' },
+  { num: '1.23', text: 'I want to see those who have gathered here to fight, wishing to please the wrong-minded Duryodhana.' },
+  { num: '1.24', text: 'Sanjaya said: O Dhritarashtra, after Arjuna said this, Krishna placed the best of chariots between the two armies.' },
+  { num: '1.25', text: 'In front of Bhishma, Drona, and all the kings, Krishna said, “Arjuna, see these Kurus gathered here.”' },
+  { num: '1.26', text: 'There Arjuna saw fathers, grandfathers, teachers, uncles, brothers, sons, grandsons, and friends standing in both armies.' },
+  { num: '1.27', text: 'He also saw fathers-in-law and companions on both sides. Seeing all his relatives lined up, Arjuna was filled with deep pity and sorrow.' },
+  { num: '1.28', text: 'Arjuna said: O Krishna, seeing my own relatives gathered here and eager to fight,' },
+  { num: '1.29', text: 'my limbs become weak, my mouth dries up, my body trembles, and my hair stands on end.' },
+  { num: '1.30', text: 'My bow Gandiva slips from my hand, my skin burns, I cannot stand steady, and my mind seems to spin.' },
+  { num: '1.31', text: 'I see bad signs, O Krishna. I do not see any good in killing my own relatives in battle.' },
+  { num: '1.32', text: 'I do not want victory, kingdom, or pleasures, O Krishna. What use are kingdom, enjoyment, or even life to us now?' },
+  { num: '1.33', text: 'Those for whose sake we desire kingdom, enjoyments and pleasures, stand here in battle, having renounced life and wealth.' },
+  { num: '1.34', text: 'Teachers, fathers, sons and also grandfathers, maternal uncles, fathers-in-law, grandsons, brothers-in-law and other relatives.' },
+  { num: '1.35', text: 'These I do not wish to kill, though they kill me, O Krishna, even for the sake of dominion over the three worlds; leave alone killing them for the sake of the earth.' },
+  { num: '1.36', text: 'By killing these sons of Dhritarashtra, what pleasure can be ours, O Janardana? Only wrongdoing will accrue to us from killing these felons.' },
+  { num: '1.37', text: 'Therefore, we should not kill the sons of Dhritarashtra, our relatives; for how can we be happy by killing our own people, O Madhava (Krishna)?' },
+  { num: '1.38', text: 'Though they, with intelligence overpowered by greed, see no evil in the destruction of families, and no wrongdoing in hostility to friends,' },
+  { num: '1.39', text: 'Why should not we who clearly see evil in the destruction of families, learn to turn away from this wrongdoing, O Janardana (Krishna)?' },
+  { num: '1.40', text: 'In the destruction of a family, the immemorial religious rites of that family perish; on the destruction of spirituality, adharma, indeed, overcomes the whole family.' },
+  { num: '1.41', text: 'By the prevalence of adharma, O Krishna, the women of the family become corrupt; and, women being corrupted, O Varshenya (descendant of Vrishni), there arises intermingling of varnas.' },
+  { num: '1.42', text: 'Confusion of castes leads to hell the slayers of the family, for their forefathers fall, deprived of the offerings of rice-ball and water (libations).' },
+  { num: '1.43', text: 'By these adharmic deeds of the destroyers of the family, which cause confusion of varnas, the eternal religious rites of the varna and the family are destroyed.' },
+  { num: '1.44', text: 'We have heard, O Janardana, that inevitable is the dwelling for an unknown period in hell for those men in whose families the religious practices have been destroyed.' },
+  { num: '1.45', text: 'Alas! We are involved in a great wrongdoing, in that we are prepared to kill our kinsmen, through greed for the pleasures of a kingdom.' },
+  { num: '1.46', text: 'If the sons of Dhritarashtra with weapons in hand should kill me in battle, unresisting and unarmed, that would be better for me.' },
+  { num: '1.47', text: 'Sanjaya said: Having thus spoken in the midst of the battlefield, Arjuna, casting away his bow and arrow, sat down on the seat of the chariot with his mind overwhelmed with sorrow.' }
+];
+
+const reelsContainer = document.getElementById('reels');
+const progressRail = document.getElementById('progressRail');
+const loader = document.getElementById('loader');
+const IMG_BASE = 'Images/Chapter%201/';
+
+const heartIcon = '<svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+const shareIcon = '<svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>';
+const bookIcon = '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>';
+const arrowDownIcon = '<svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
+verses.forEach((verse, i) => {
+  const reel = document.createElement('section');
+  reel.className = 'reel';
+  reel.dataset.index = i;
+  reel.dataset.verse = verse.num;
+
+  const imgUrl = IMG_BASE + verse.num + '.png';
+  const isFirst = i === 0;
+
+  reel.innerHTML = `
+    <div class="reel-bg" style="background-image:url('${imgUrl}')"></div>
+    <div class="reel-image-wrap">
+      <img class="reel-image" src="${imgUrl}" alt="Bhagavad Gita Verse ${verse.num}" loading="${isFirst ? 'eager' : 'lazy'}" decoding="async">
+    </div>
+
+    <div class="top-bar">
+      <div class="chapter-title">
+        Bhagavad Gita
+        <small>Chapter 1 · Arjuna Visada Yoga</small>
+      </div>
+      <div class="verse-badge">${verse.num}</div>
+    </div>
+
+    <div class="side-actions">
+      <div class="side-action" data-action="like" role="button" aria-label="Like">
+        <div class="side-action-icon">${heartIcon}</div>
+        <span class="side-action-label">Like</span>
+      </div>
+      <div class="side-action" data-action="share" role="button" aria-label="Share">
+        <div class="side-action-icon">${shareIcon}</div>
+        <span class="side-action-label">Share</span>
+      </div>
+      <div class="side-action" data-action="save" role="button" aria-label="Save">
+        <div class="side-action-icon">${bookIcon}</div>
+        <span class="side-action-label">Save</span>
+      </div>
+    </div>
+
+    ${isFirst ? `
+      <div class="scroll-hint">
+        <span>Scroll</span>
+        ${arrowDownIcon}
+      </div>
+    ` : ''}
+
+    <div class="verse-text-wrap">
+      <div class="verse-label">Verse ${verse.num}</div>
+      <p class="verse-text">${verse.text}</p>
+    </div>
+  `;
+
+  reelsContainer.appendChild(reel);
+
+  // Progress dot
+  const dot = document.createElement('div');
+  dot.className = 'progress-dot';
+  dot.dataset.index = i;
+  progressRail.appendChild(dot);
+});
+
+// Image fade-in handling
+document.querySelectorAll('.reel-image').forEach(img => {
+  if (img.complete && img.naturalHeight !== 0) {
+    img.classList.add('loaded');
+  } else {
+    img.addEventListener('load', () => img.classList.add('loaded'));
+    img.addEventListener('error', () => {
+      img.classList.add('loaded');
+      img.style.opacity = '0.3';
+      img.alt = 'Image missing';
+    });
+  }
+});
+
+// Hide loader once first image loads (or after timeout)
+const firstImg = reelsContainer.querySelector('.reel-image');
+const dismissLoader = () => loader.classList.add('hidden');
+if (firstImg.complete && firstImg.naturalHeight !== 0) {
+  setTimeout(dismissLoader, 250);
+} else {
+  firstImg.addEventListener('load', () => setTimeout(dismissLoader, 250));
+  firstImg.addEventListener('error', dismissLoader);
+}
+setTimeout(dismissLoader, 3000); // safety net
+
+// Update progress dots based on scroll position
+const dots = progressRail.querySelectorAll('.progress-dot');
+function updateProgress() {
+  const idx = Math.round(reelsContainer.scrollTop / window.innerHeight);
+  dots.forEach((d, i) => {
+    d.classList.remove('active', 'near');
+    if (i === idx) d.classList.add('active');
+    else if (Math.abs(i - idx) <= 2) d.classList.add('near');
+  });
+}
+reelsContainer.addEventListener('scroll', () => {
+  requestAnimationFrame(updateProgress);
+});
+updateProgress();
+
+// Keyboard navigation
+document.addEventListener('keydown', (e) => {
+  const current = Math.round(reelsContainer.scrollTop / window.innerHeight);
+  let target = current;
+  if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'j') {
+    target = Math.min(verses.length - 1, current + 1);
+    e.preventDefault();
+  } else if (e.key === 'ArrowUp' || e.key === 'PageUp' || e.key === 'k') {
+    target = Math.max(0, current - 1);
+    e.preventDefault();
+  } else if (e.key === 'Home') {
+    target = 0;
+    e.preventDefault();
+  } else if (e.key === 'End') {
+    target = verses.length - 1;
+    e.preventDefault();
+  }
+  if (target !== current) {
+    reelsContainer.scrollTo({ top: target * window.innerHeight, behavior: 'smooth' });
+  }
+});
+
+// Side actions interactivity (decorative)
+reelsContainer.addEventListener('click', (e) => {
+  const action = e.target.closest('.side-action');
+  if (!action) return;
+  if (action.dataset.action === 'like' || action.dataset.action === 'save') {
+    action.classList.toggle('active');
+  } else if (action.dataset.action === 'share') {
+    const reel = action.closest('.reel');
+    const verseNum = reel.dataset.verse;
+    const text = `Bhagavad Gita ${verseNum}\n\n` +
+      verses.find(v => v.num === verseNum).text;
+    if (navigator.share) {
+      navigator.share({ title: `Bhagavad Gita ${verseNum}`, text }).catch(() => {});
+    } else if (navigator.clipboard) {
+      navigator.clipboard.writeText(text).then(() => {
+        action.querySelector('.side-action-label').textContent = 'Copied!';
+        setTimeout(() => {
+          action.querySelector('.side-action-label').textContent = 'Share';
+        }, 1500);
+      });
+    }
+  }
+});
+
+// Wheel-based snap fallback (for trackpads that don't snap by default)
+let wheelTimeout = null;
+let wheelLock = false;
+reelsContainer.addEventListener('wheel', (e) => {
+  if (wheelLock) {
+    e.preventDefault();
+    return;
+  }
+  // Native scroll-snap usually handles this, leave as fallback
+}, { passive: false });
+
+// On URL hash, scroll to that verse (e.g. #1.25)
+function scrollToHash() {
+  const hash = window.location.hash.replace('#', '');
+  if (!hash) return;
+  const idx = verses.findIndex(v => v.num === hash);
+  if (idx >= 0) {
+    setTimeout(() => {
+      reelsContainer.scrollTo({ top: idx * window.innerHeight, behavior: 'instant' in window.scrollTo ? 'auto' : 'auto' });
+    }, 100);
+  }
+}
+window.addEventListener('load', scrollToHash);
+window.addEventListener('hashchange', scrollToHash);
+
+// Update hash as user scrolls (debounced)
+let hashUpdateTimer = null;
+reelsContainer.addEventListener('scroll', () => {
+  clearTimeout(hashUpdateTimer);
+  hashUpdateTimer = setTimeout(() => {
+    const idx = Math.round(reelsContainer.scrollTop / window.innerHeight);
+    if (verses[idx]) {
+      const newHash = '#' + verses[idx].num;
+      if (window.location.hash !== newHash) {
+        history.replaceState(null, '', newHash);
+      }
+    }
+  }, 200);
+});
+
+// Prevent double-tap zoom on mobile
+let lastTap = 0;
+document.addEventListener('touchend', (e) => {
+  const now = Date.now();
+  if (now - lastTap < 300) e.preventDefault();
+  lastTap = now;
+});
+</script>
+
+</body>
+</html>
